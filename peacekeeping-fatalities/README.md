@@ -21,7 +21,7 @@ To run the notebook:
 1. Copy `#.env.example` to `.env`
 2. Replace `your-api-key-here` with your actual OpenAI API key
 
-If you'd prefer to use your own key, you can replace it manually in preprocessing.py or load it via a `.env` file.
+If you'd prefer to use your own key, you can replace it manually in `preprocessing.py` or load it via a `.env` file.
 
 If you don't have your own key, please message me for a demonstration key.
 
