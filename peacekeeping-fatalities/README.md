@@ -13,9 +13,21 @@ Using a dataset of all known UN peacekeeper deaths, this project explores where 
 - **QGIS** for geographic visualization and animation
 - **Jupyter Notebook** for development and documentation
 
+## 🔧 Setup
+
+This project uses environment variables (OpenAI API key).
+
+To run the notebook:
+1. Copy `#.env.example` to `.env`
+2. Replace `your-api-key-here` with your actual OpenAI API key
+
+If you'd prefer to use your own key, you can replace it manually in preprocessing.py or load it via a `.env` file.
+
+If you don't have your own key, please message me for a demonstration key.
+
 ## Data Sources
 
-- UN Peacekeeper Fatality Records (.csv)
+- UN Peacekeeper Fatality Records (.csv) 
 - Wikipedia (for mission locations and timelines, via GPT queries)
 - QGIS World Borders shapefile (default)
 
@@ -41,9 +53,12 @@ A 40-second GIF illustrates:
 - `mission_year_fatalities.csv`: Final dataset used for temporal visualization.
 - `UN_peacekeeping_missions_fatalities.zip`: Shapefile of UN peacekeeping missions with fatalities.
 - `peacekeeping_missions.gif`: Final animation.
+- `preprocessing.py`: Python code to be used with the notebook.
+- `processing.py`: Python code to be used with the notebook.
+- `#env.example`: example env file for OpenAI API key.
 - `README.md`: Project overview and documentation.
 
 ## ✍️ Author
 
 Ivan Divilkovskiy  
-[LinkedIn]([https://www.linkedin.com/in/your-profile](https://www.linkedin.com/in/ivandivilkovskiy)) | [GitHub](https://github.com/iv-div)
+[LinkedIn](https://www.linkedin.com/in/ivandivilkovskiy) | [GitHub](https://github.com/iv-div)
