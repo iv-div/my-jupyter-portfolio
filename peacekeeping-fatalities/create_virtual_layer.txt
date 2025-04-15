@@ -1,0 +1,11 @@
+SELECT 
+  p.*, 
+  c.date, 
+  c.fatalities,
+  c.active_operation
+FROM 
+  missions AS p
+JOIN 
+  mission_year_fatalities AS c
+ON 
+  p.mission = c.mission_acronym

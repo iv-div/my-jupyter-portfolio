@@ -1,0 +1,91 @@
+# This code is to be run in QGIS python console to create mission polygons.
+
+import csv
+import unicodedata
+from qgis.core import (
+    QgsProject,
+    QgsVectorLayer,
+    QgsFeature,
+    QgsField,
+    QgsFields,
+    QgsVectorFileWriter,
+    QgsWkbTypes,
+    QgsGeometry,
+    QgsVectorLayerUtils,
+    QgsCoordinateTransformContext
+)
+from PyQt5.QtCore import QVariant
+import os
+
+# ---- Normalize function to remove accents (for Côte d'Ivoire) ----
+def normalize_str(s):
+    s = str(s)  # Ensure it's a string, even if it's a QVariant
+    return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn').lower()
+
+# ---- CONFIGURATION ----
+csv_path = 'path_to_csv' #path to csv 
+country_layer_name = 'World Map'
+country_field_name = 'NAME'
+output_path = 'path_to_geopackage' #path to the future geopackage layer
+output_layer_name = 'missions'
+
+# ---- Get Country Layer ----
+country_layer = QgsProject.instance().mapLayersByName(country_layer_name)[0]
+
+# ---- Read CSV ----
+mission_country_map = {}
+with open(csv_path, newline='', encoding='utf-8') as csvfile:
+    reader = csv.DictReader(csvfile)
+    for row in reader:
+        mission = row['mission_acronym']
+        countries = [c.strip() for c in row['countries_of_operation'].split(',')]
+        mission_country_map[mission] = countries
+
+# ---- Create Memory Layer ----
+fields = QgsFields()
+fields.append(QgsField('mission', QVariant.String))
+
+mem_layer = QgsVectorLayer('MultiPolygon?crs=' + country_layer.crs().authid(), 'missions_temp', 'memory')
+mem_layer.dataProvider().addAttributes(fields)
+mem_layer.updateFields()
+
+# ---- Add Merged Features per Mission ----
+for mission, countries in mission_country_map.items():
+    norm_countries = [normalize_str(c) for c in countries]
+    matching_geometries = []
+
+    for feat in country_layer.getFeatures():
+        country_name = feat[country_field_name]
+        if normalize_str(country_name) in norm_countries:
+            matching_geometries.append(feat.geometry())
+
+    if matching_geometries:
+        merged_geom = matching_geometries[0]
+        for g in matching_geometries[1:]:
+            merged_geom = merged_geom.combine(g)
+
+        feat = QgsFeature()
+        feat.setFields(mem_layer.fields())
+        feat.setAttribute('mission', mission)
+        feat.setGeometry(merged_geom)
+        mem_layer.dataProvider().addFeatures([feat])
+    else:
+        print(f"⚠️ No matching countries found for mission: {mission}")
+
+# ---- Save to File (GeoPackage) ----
+options = QgsVectorFileWriter.SaveVectorOptions()
+options.driverName = 'GPKG'
+options.layerName = output_layer_name
+options.fileEncoding = 'UTF-8'
+
+res, error_message = QgsVectorFileWriter.writeAsVectorFormatV2(
+    mem_layer,
+    output_path,
+    QgsProject.instance().transformContext(),
+    options
+)
+
+if res == QgsVectorFileWriter.NoError:
+    print(f"✅ Successfully saved to {output_path}")
+else:
+    print(f"❌ Error saving: {error_message}")
