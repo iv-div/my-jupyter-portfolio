@@ -10,6 +10,18 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Create a function for sending to openai
 def send_to_chatgpt(model, text, temperature, max_tokens):
+    api_key = os.getenv("OPENAI_API_KEY")
+
+    if not api_key:
+        raise EnvironmentError("""
+This project uses environment variables (OpenAI API key). It seems that your variable is not set up properly. To run the notebook:
+1. Copy `.env.example` to `.env`
+2. Replace `your-api-key-here` with your actual OpenAI API key
+
+If you'd prefer to use your own key, you can replace it manually in `preprocessing.py` or load it via a `.env` file.
+If you don't have your own key, please message me for a demonstration key.
+""")
+
     headers = {
         'Content-Type': 'application/json',
         "Authorization": f"Bearer {openai.api_key}"
