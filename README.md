@@ -6,7 +6,7 @@ Each folder contains a project where I applied data science and policy analysis 
 
 ## 🌍 Projects
 
-### 1. [UN Peacekeeping Fatalities Visualization](./Peacekeeping_Fatalities)
+### 1. [UN Peacekeeping Fatalities Visualization](./Peacekeeping-Fatalities)
 An animated geospatial visualization of UN peacekeeping missions and fatalities over time. Combines GPT-assisted data enrichment, Python-based processing and QGIS visualisation.
 
 ---
@@ -15,7 +15,7 @@ More projects coming soon, including:
 
 ## 📄 CV
 
-You can find my CV here: [Ivan_Divilkovskiy_CV_GitHub.pdf](./Ivan_Divilkovskiy_CV_GitHub.pdf)
+You can find my CV here: [Ivan_Divilkovskiy_CV_GitHub.pdf](./Ivan Divilkovskiy CV for GitHub April 25.pdf)
 
 ## 📫 Contact
 
