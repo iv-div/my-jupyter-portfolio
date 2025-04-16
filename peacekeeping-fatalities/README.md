@@ -1,4 +1,4 @@
-![Project Thumbnail](./peacekeeping-fatalities/thumbnail.png)
+![Project Thumbnail](./thumbnail.png)
 
 # UN Peacekeeping Fatalities Visualization
 
