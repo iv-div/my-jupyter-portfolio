@@ -1,4 +1,4 @@
-![Project Thumbnail](./thumbnail.png)
+![Project Thumbnail](./images/peacekeeping_missions_compressed.gif)
 
 # UN Peacekeeping Fatalities Visualization
 
