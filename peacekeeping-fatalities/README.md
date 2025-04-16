@@ -1,3 +1,5 @@
+![Project Thumbnail](/thumbnail.png)
+
 # UN Peacekeeping Fatalities Visualization
 
 This project visualizes the geography and intensity of UN peacekeeping missions based on registered fatalities.
