@@ -10,7 +10,7 @@ Using a dataset of all known UN peacekeeper deaths, this project explores where 
 
 ## 🛠 Tools & Technologies
 
-- **Python** (pandas, requests, OpenAI API)
+- **Python** (pandas, matplotlib, numpy, requests, OpenAI API)
 - **OpenAI GPT-4o** for data extraction and fact-checking
 - **QGIS** for geographic visualization and animation
 - **Jupyter Notebook** for development and documentation
@@ -35,13 +35,18 @@ If you don't have your own key, please message me for a demonstration key.
 
 ## Key Steps
 
-1. **Download & preprocess data**: The dataset is downloaded and mission details (start/end years and countries of operation) are extracted with GPT.
-2. **Fact-checking**: Each mission's data is verified again using GPT to minimize hallucinations or errors. The resulting dataset is cleaned manually
-3. **Data merging**: Mission data is joined with fatality counts by year.
-4. **QGIS visualization**: Each mission is represented as a polygon, with annual fatality counts visualized through color-coding.
-5. **Temporal animation**: The result is exported as an animated GIF, showing the evolution of missions and fatalities over time.
+1. **Download & explore data**: The dataset is downloaded and explored using matplotlib to gain preliminary understanding of the scope of UN missions. 
+2. **Data preprocessing**: Mission details (start/end years and countries of operation) are extracted with GPT.
+3. **Fact-checking**: Each mission's data is verified again using GPT to minimize hallucinations or errors. The resulting dataset is cleaned manually
+4. **Data merging**: Mission data is joined with fatality counts by year.
+5. **QGIS visualization**: Each mission is represented as a polygon, with annual fatality counts visualized through color-coding.
+6. **Temporal animation**: The result is exported as an animated GIF, showing the evolution of missions and fatalities over time.
 
 ## 🎞 Final Output
+
+[Main notebook](./un_peacekeepers.ipynb)
+
+[Supporting notebook with data exploration](./data_exploration.ipynb)
 
 A 40-second GIF illustrates:
 - A rise in peacekeeping missions after the Cold War
