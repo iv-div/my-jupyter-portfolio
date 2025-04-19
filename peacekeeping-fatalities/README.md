@@ -10,8 +10,8 @@ Using a dataset of all known UN peacekeeper deaths, this project explores where 
 
 ## 🛠 Tools & Technologies
 
-- **Python** (pandas, matplotlib, numpy, requests, OpenAI API)
-- **OpenAI GPT-4o** for data extraction and fact-checking
+- **Python** (pandas, matplotlib, numpy, requests, bar_chart_race, dotenv, seaborn, openai)
+- **OpenAI API** for data extraction and fact-checking
 - **QGIS** for geographic visualization and animation
 - **Jupyter Notebook** for development and documentation
 
@@ -48,7 +48,7 @@ If you don't have your own key, please message me for a demonstration key.
 
 [Supporting notebook with data exploration](./data_exploration.ipynb)
 
-[Supporting notebook with exploring countries of origin](./countries_of_origin.ipynb)
+[Supporting notebook exploring countries of origin](./countries_of_origin.ipynb)
 
 A resulting GIF illustrates:
 - A rise in peacekeeping missions after the Cold War
