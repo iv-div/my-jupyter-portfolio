@@ -35,7 +35,7 @@ If you don't have your own key, please message me for a demonstration key.
 
 ## Key Steps
 
-1. **Download & explore data**: The dataset is downloaded and explored using matplotlib to gain preliminary understanding of the scope of UN missions. 
+1. **Download & explore data**: The dataset is downloaded and explored using matplotlib graphs to gain preliminary understanding of the scope of UN missions. 
 2. **Data preprocessing**: Mission details (start/end years and countries of operation) are extracted with GPT.
 3. **Fact-checking**: Each mission's data is verified again using GPT to minimize hallucinations or errors. The resulting dataset is cleaned manually
 4. **Data merging**: Mission data is joined with fatality counts by year.
@@ -48,18 +48,22 @@ If you don't have your own key, please message me for a demonstration key.
 
 [Supporting notebook with data exploration](./data_exploration.ipynb)
 
-A 40-second GIF illustrates:
+[Supporting notebook with exploring countries of origin](./countries_of_origin.ipynb)
+
+A resulting GIF illustrates:
 - A rise in peacekeeping missions after the Cold War
 - A strong concentration of missions in Africa
 - Africa also being the region with the highest number of peacekeeper fatalities
 
 ## 📎 Files in This Repository
 
-- `UN_peacekeeping_analysis.ipynb`: Full notebook with code, outputs, and analysis.
+- `un_peacekeepers.ipynb`: Full notebook with code, outputs, and analysis.
+- `data_exploration.ipynb`: Supporting notebook.
+- `countries_of_origin.ipynb`: Supporting notebook.
 - `DPPADPOSS-FATALITIES.csv`: Original dataset. 
 - `mission_year_fatalities.csv`: Final dataset used for temporal visualization.
+- `UN_peacekeepers.qgz`: QGIS project file.
 - `UN_peacekeeping_missions_fatalities.zip`: Shapefile of UN peacekeeping missions with fatalities.
-- `peacekeeping_missions.gif`: Final animation.
 - `preprocessing.py`: Python code to be used with the notebook.
 - `processing.py`: Python code to be used with the notebook.
 - `#env.example`: example env file for OpenAI API key.
