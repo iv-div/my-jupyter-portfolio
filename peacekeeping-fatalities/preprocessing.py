@@ -129,5 +129,5 @@ mission_data = add_verification_column(mission_data, send_to_chatgpt)
 mission_data.to_excel("mission_countries_years_with_check.xlsx", index=False)
 
 # Print the updated DataFrame for inspection
-print("\n--- Updated Mission Data with Verification Column ---")
-print(mission_data)
+#print("\n--- Updated Mission Data with Verification Column ---")
+#print(mission_data)
