@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Leaflet Compare — Smooth Handle</title>
+  <title>Leaflet Compare — Big Handle, No Map Move</title>
 
   <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -17,19 +17,19 @@
     html, body { height: 100%; margin: 0; }
     #map { position: absolute; inset: 0; }
 
-    /* Make the hit area fat and obvious */
+    /* 2× thicker handle + easy to grab */
     .leaflet-compare .compare-handle {
-      width: 18px;                      /* <- wider = easier to grab */
+      width: 36px;                      /* was ~18px → now 2× */
       background: rgba(255,255,255,0.95);
       border: 1px solid #888;
       box-shadow: 0 0 0 1px #666 inset, 0 0 10px rgba(0,0,0,0.25);
       cursor: ew-resize;
       z-index: 10000;
-      touch-action: none;               /* prevent browser gesture hijack */
+      touch-action: none;               /* prevent browser gestures on touch */
       user-select: none;
-      pointer-events: auto;             /* ensure it actually captures pointer */
+      pointer-events: auto;
     }
-    /* Ensure the compare layer accepts events (some builds set none) */
+    /* Make sure the compare band itself can catch events */
     .leaflet-compare .compare { pointer-events: auto; }
   </style>
 </head>
@@ -44,98 +44,47 @@
     const RIGHT_IMG = 'Mirzaabad_May_2020.png';
 
     // --- Map ---
-    const map = L.map('map');
-    map.fitBounds(bounds);
+    const map = L.map('map', {
+      zoomControl: false,     // optional: remove +/− UI
+      dragging: false,        // hard-disable panning
+      scrollWheelZoom: false, // disable wheel zoom
+      doubleClickZoom: false, // disable dblclick zoom
+      boxZoom: false,         // disable box zoom
+      touchZoom: false,       // disable pinch zoom
+      keyboard: false         // disable keyboard nav
+    });
 
-    // Give each side its own pane (matches plugin demo pattern)
+    // If you still want a basemap visible, add it (it won’t move)
+    const leftBase  = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap'
+    });
+    const rightBase = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap'
+    });
+
+    // Two panes so each side has its own stack (matches plugin demo)
     map.createPane('left');
     map.createPane('right');
 
-    const leftBase  = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' });
-    const rightBase = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' });
+    // Image overlays pinned to panes
+    const leftOverlay  = L.imageOverlay(LEFT_IMG,  bounds, { pane: 'left' });
+    const rightOverlay = L.imageOverlay(RIGHT_IMG, bounds, { pane: 'right' });
+
+    // Add layers
     leftBase.addTo(map);
     rightBase.addTo(map);
+    leftOverlay.addTo(map);
+    rightOverlay.addTo(map);
 
-    const leftOverlay  = L.imageOverlay(LEFT_IMG,  bounds, { pane: 'left' }).addTo(map);
-    const rightOverlay = L.imageOverlay(RIGHT_IMG, bounds, { pane: 'right' }).addTo(map);
+    // Fit once (map can't be dragged anyway)
+    map.fitBounds(bounds);
 
-    // --- Compare control ---
-    const compare = L.control.compare(
+    // Compare control with big handle
+    L.control.compare(
       [leftBase, leftOverlay],
       [rightBase, rightOverlay],
-      { position: 0.5 }
+      { position: 0.5 } // start centered
     ).addTo(map);
-
-    // --- Make the handle “own” the drag: disable map interactions while dragging the handle ---
-    const handle = () => document.querySelector('.leaflet-compare .compare-handle');
-
-    // keep original enabled state so we can restore exactly
-    const interactionToggles = {
-      dragging: map.dragging.enabled(),
-      touchZoom: map.touchZoom.enabled(),
-      scrollWheelZoom: map.scrollWheelZoom.enabled(),
-      doubleClickZoom: map.doubleClickZoom.enabled(),
-      boxZoom: map.boxZoom.enabled(),
-      keyboard: map.keyboard && map.keyboard.enabled ? map.keyboard.enabled() : false
-    };
-
-    function disableMapInteractions() {
-      if (interactionToggles.dragging)        map.dragging.disable();
-      if (interactionToggles.touchZoom)       map.touchZoom.disable();
-      if (interactionToggles.scrollWheelZoom) map.scrollWheelZoom.disable();
-      if (interactionToggles.doubleClickZoom) map.doubleClickZoom.disable();
-      if (interactionToggles.boxZoom)         map.boxZoom.disable();
-      if (interactionToggles.keyboard && map.keyboard) map.keyboard.disable();
-    }
-
-    function enableMapInteractions() {
-      if (interactionToggles.dragging)        map.dragging.enable();
-      if (interactionToggles.touchZoom)       map.touchZoom.enable();
-      if (interactionToggles.scrollWheelZoom) map.scrollWheelZoom.enable();
-      if (interactionToggles.doubleClickZoom) map.doubleClickZoom.enable();
-      if (interactionToggles.boxZoom)         map.boxZoom.enable();
-      if (interactionToggles.keyboard && map.keyboard) map.keyboard.enable();
-    }
-
-    function stopEvt(e) {
-      // Keep the drag strictly on the handle / compare control
-      e.preventDefault();
-      e.stopPropagation();
-    }
-
-    function wireHandleGuards() {
-      const h = handle();
-      if (!h) { setTimeout(wireHandleGuards, 50); return; }
-
-      // Start: disable map, capture pointer
-      ['pointerdown','mousedown','touchstart'].forEach(type => {
-        h.addEventListener(type, (e) => {
-          stopEvt(e);
-          disableMapInteractions();
-          if (h.setPointerCapture && e.pointerId != null) {
-            try { h.setPointerCapture(e.pointerId); } catch {}
-          }
-        }, { passive: false });
-      });
-
-      // Move: prevent bubbling to map (plugin listens too; we don’t move it ourselves)
-      ['pointermove','mousemove','touchmove'].forEach(type => {
-        h.addEventListener(type, stopEvt, { passive: false });
-      });
-
-      // End: release + restore map
-      ['pointerup','mouseup','touchend','touchcancel','mouseleave'].forEach(type => {
-        document.addEventListener(type, (e) => {
-          enableMapInteractions();
-          if (h.releasePointerCapture && e.pointerId != null) {
-            try { h.releasePointerCapture(e.pointerId); } catch {}
-          }
-        }, { passive: true });
-      });
-    }
-
-    // The handle is created by the control; give it a tick then wire guards
-    setTimeout(wireHandleGuards, 0);
   })();
   </script>
 </body>
