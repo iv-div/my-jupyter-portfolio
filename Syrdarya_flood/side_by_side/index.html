@@ -15,7 +15,7 @@
 <body>
 <div id="map"></div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="<script src="https://unpkg.com/leaflet-side-by-side@2.2.0/dist/leaflet-side-by-side.min.js"></script>
 <!-- Use unpkg and a pinned version that’s known to work -->
 <script src="https://unpkg.com/leaflet-side-by-side@2.2.0/dist/leaflet-side-by-side.min.js"></script>
 
@@ -36,6 +36,9 @@ var leftImg = L.imageOverlay('Mirzaabad_May_2019.png', bounds).addTo(map);
 var rightImg = L.imageOverlay('Mirzaabad_May_2020.png', bounds).addTo(map);
 
 map.fitBounds(bounds);
+
+  typeof L.control.sideBySide  // should print "function"
+
 
 // Add the slider control
 L.control.sideBySide(leftImg, rightImg).addTo(map);
