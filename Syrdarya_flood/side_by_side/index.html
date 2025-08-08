@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Leaflet Compare — ImageOverlay with panes</title>
+  <title>Leaflet Compare — Smooth Handle</title>
 
   <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -17,182 +17,125 @@
     html, body { height: 100%; margin: 0; }
     #map { position: absolute; inset: 0; }
 
-    /* Make the handle easy to grab */
+    /* Make the hit area fat and obvious */
     .leaflet-compare .compare-handle {
-      width: 12px;
-      background: rgba(255,255,255,0.9);
-      border: 1px solid #999;
-      box-shadow: 0 0 0 1px #666 inset, 0 0 6px rgba(0,0,0,0.25);
+      width: 18px;                      /* <- wider = easier to grab */
+      background: rgba(255,255,255,0.95);
+      border: 1px solid #888;
+      box-shadow: 0 0 0 1px #666 inset, 0 0 10px rgba(0,0,0,0.25);
       cursor: ew-resize;
       z-index: 10000;
-      touch-action: none;
+      touch-action: none;               /* prevent browser gesture hijack */
       user-select: none;
+      pointer-events: auto;             /* ensure it actually captures pointer */
     }
+    /* Ensure the compare layer accepts events (some builds set none) */
+    .leaflet-compare .compare { pointer-events: auto; }
   </style>
 </head>
 <body>
   <div id="map"></div>
 
   <script>
-  // 1) Map
-  const map = L.map('map');
-
-  // 2) Bounds (your EPSG:4326 extent)
-  const bounds = [[40.45640682642721, 68.4373932792854], [40.646767386947346, 68.78707240399831]];
-  map.fitBounds(bounds);
-
-  // 3) Create two panes so each side has its own overlay “stack”
-  map.createPane('left');
-  map.createPane('right');
-
-  // 4) Base layers — one for each side (can be the same source)
-  const leftBase = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap'
-  });
-  const rightBase = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap'
-  });
-
-  // 5) Your images, pinned to their panes
-  const LEFT_IMG  = 'Mirzaabad_May_2019.png';
-  const RIGHT_IMG = 'Mirzaabad_May_2020.png';
-
-  const leftOverlay  = L.imageOverlay(LEFT_IMG,  bounds, { pane: 'left' });
-  const rightOverlay = L.imageOverlay(RIGHT_IMG, bounds, { pane: 'right' });
-
-  // Add everything to the map (they’ll be clipped by the compare control)
-  leftBase.addTo(map);
-  rightBase.addTo(map);
-  leftOverlay.addTo(map);
-  rightOverlay.addTo(map);
-
-  // 6) Compare control — pass arrays per side, like the example
-  L.control.compare(
-    [leftBase, leftOverlay],
-    [rightBase, rightOverlay],
-    { position: 0.5 } // start in the middle
-  ).addTo(map);
-  </script>
-</body>
-</html>
-
-
-
-
-
-
-
-
-
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Before/After Swipe (ImageOverlay, Leaflet Compare)</title>
-
-  <!-- Leaflet core -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-          onload="console.log('[OK] Leaflet loaded')"
-          onerror="console.error('[ERR] Leaflet failed to load')"></script>
-
-  <!-- Leaflet Compare (works with ImageOverlay) -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-compare/dist/leaflet-compare.css"/>
-  <script defer src="https://unpkg.com/leaflet-compare/dist/leaflet-compare.js"
-          onload="console.log('[OK] Leaflet-Compare loaded')"
-          onerror="console.error('[ERR] Leaflet-Compare failed to load')"></script>
-
-  <style>
-    html, body { height: 100%; margin: 0; }
-    #map { position: absolute; inset: 0; }
-    /* Optional: make the handle easier to grab */
-    .leaflet-compare .compare-handle { width: 6px; }
-  </style>
-</head>
-<body>
-  <div id="map"></div>
-
-  <script defer>
   (function () {
-    const ok   = (m, ...a) => console.log('%c' + m, 'color:#0a0;font-weight:bold', ...a);
-    const info = (m, ...a) => console.log('%c' + m, 'color:#06c', ...a);
-    const warn = (m, ...a) => console.warn('%c' + m, 'color:#b80', ...a);
-    const err  = (m, ...a) => console.error('%c' + m, 'color:#c00;font-weight:bold', ...a);
+    // --- Your inputs ---
+    const bounds = [[40.45640682642721, 68.4373932792854], [40.646767386947346, 68.78707240399831]];
+    const LEFT_IMG  = 'Mirzaabad_May_2019.png';
+    const RIGHT_IMG = 'Mirzaabad_May_2020.png';
 
-    window.addEventListener('DOMContentLoaded', async () => {
-      info('[BOOT] DOMContentLoaded');
+    // --- Map ---
+    const map = L.map('map');
+    map.fitBounds(bounds);
 
-      // 1) Sanity: libraries
-      if (typeof L === 'undefined') {
-        err('[FATAL] Leaflet (L) is undefined — leaflet.js didn’t load.');
-        return;
-      }
-      ok('[OK] Leaflet detected', L.version);
+    // Give each side its own pane (matches plugin demo pattern)
+    map.createPane('left');
+    map.createPane('right');
 
-      if (typeof L.control?.compare !== 'function') {
-        err('[FATAL] leaflet-compare is not available — check the <script> URL/load order.');
-        return;
-      }
-      ok('[OK] leaflet-compare available');
+    const leftBase  = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' });
+    const rightBase = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' });
+    leftBase.addTo(map);
+    rightBase.addTo(map);
 
-      // 2) Your files (case-sensitive) — put them next to this HTML
-      const LEFT_IMG  = 'Mirzaabad_May_2019.png';
-      const RIGHT_IMG = 'Mirzaabad_May_2020.png';
-      info('[INFO] Using images:', { LEFT_IMG, RIGHT_IMG });
+    const leftOverlay  = L.imageOverlay(LEFT_IMG,  bounds, { pane: 'left' }).addTo(map);
+    const rightOverlay = L.imageOverlay(RIGHT_IMG, bounds, { pane: 'right' }).addTo(map);
 
-      // 3) Your geographic bounds in EPSG:4326 as [[south,west],[north,east]]
-      const bounds = [[40.45640682642721, 68.4373932792854], [40.646767386947346, 68.78707240399831]];
-      ok('[OK] Bounds set', bounds);
+    // --- Compare control ---
+    const compare = L.control.compare(
+      [leftBase, leftOverlay],
+      [rightBase, rightOverlay],
+      { position: 0.5 }
+    ).addTo(map);
 
-      // 4) Preflight image reachability (helps catch 404s early)
-      const check = (src) => new Promise(res => {
-        const i = new Image();
-        i.onload = () => { ok(`[OK] Image reachable: ${src} (${i.naturalWidth}x${i.naturalHeight})`); res(true); };
-        i.onerror = () => { err(`[ERR] Image failed to load: ${src}`); res(false); };
-        i.src = src + '?cachebust=' + Date.now();
+    // --- Make the handle “own” the drag: disable map interactions while dragging the handle ---
+    const handle = () => document.querySelector('.leaflet-compare .compare-handle');
+
+    // keep original enabled state so we can restore exactly
+    const interactionToggles = {
+      dragging: map.dragging.enabled(),
+      touchZoom: map.touchZoom.enabled(),
+      scrollWheelZoom: map.scrollWheelZoom.enabled(),
+      doubleClickZoom: map.doubleClickZoom.enabled(),
+      boxZoom: map.boxZoom.enabled(),
+      keyboard: map.keyboard && map.keyboard.enabled ? map.keyboard.enabled() : false
+    };
+
+    function disableMapInteractions() {
+      if (interactionToggles.dragging)        map.dragging.disable();
+      if (interactionToggles.touchZoom)       map.touchZoom.disable();
+      if (interactionToggles.scrollWheelZoom) map.scrollWheelZoom.disable();
+      if (interactionToggles.doubleClickZoom) map.doubleClickZoom.disable();
+      if (interactionToggles.boxZoom)         map.boxZoom.disable();
+      if (interactionToggles.keyboard && map.keyboard) map.keyboard.disable();
+    }
+
+    function enableMapInteractions() {
+      if (interactionToggles.dragging)        map.dragging.enable();
+      if (interactionToggles.touchZoom)       map.touchZoom.enable();
+      if (interactionToggles.scrollWheelZoom) map.scrollWheelZoom.enable();
+      if (interactionToggles.doubleClickZoom) map.doubleClickZoom.enable();
+      if (interactionToggles.boxZoom)         map.boxZoom.enable();
+      if (interactionToggles.keyboard && map.keyboard) map.keyboard.enable();
+    }
+
+    function stopEvt(e) {
+      // Keep the drag strictly on the handle / compare control
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    function wireHandleGuards() {
+      const h = handle();
+      if (!h) { setTimeout(wireHandleGuards, 50); return; }
+
+      // Start: disable map, capture pointer
+      ['pointerdown','mousedown','touchstart'].forEach(type => {
+        h.addEventListener(type, (e) => {
+          stopEvt(e);
+          disableMapInteractions();
+          if (h.setPointerCapture && e.pointerId != null) {
+            try { h.setPointerCapture(e.pointerId); } catch {}
+          }
+        }, { passive: false });
       });
-      const [okL, okR] = await Promise.all([check(LEFT_IMG), check(RIGHT_IMG)]);
-      if (!okL || !okR) {
-        err('[FATAL] Fix the missing image(s) and reload.');
-        return;
-      }
 
-      // 5) Create map + basemap
-      const map = L.map('map');
-      ok('[OK] Map created');
+      // Move: prevent bubbling to map (plugin listens too; we don’t move it ourselves)
+      ['pointermove','mousemove','touchmove'].forEach(type => {
+        h.addEventListener(type, stopEvt, { passive: false });
+      });
 
-      const base = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap'
-      }).addTo(map);
-      base.on('load', () => ok('[OK] Base tiles loaded'));
-      base.on('tileerror', (e) => warn('[WARN] Base tile error', e));
+      // End: release + restore map
+      ['pointerup','mouseup','touchend','touchcancel','mouseleave'].forEach(type => {
+        document.addEventListener(type, (e) => {
+          enableMapInteractions();
+          if (h.releasePointerCapture && e.pointerId != null) {
+            try { h.releasePointerCapture(e.pointerId); } catch {}
+          }
+        }, { passive: true });
+      });
+    }
 
-      // 6) Create the image overlays (ImageOverlay works with leaflet-compare)
-      const leftOverlay  = L.imageOverlay(LEFT_IMG, bounds);
-      const rightOverlay = L.imageOverlay(RIGHT_IMG, bounds);
-      leftOverlay.on('load',  () => ok('[OK] Left image overlay rendered'));
-      rightOverlay.on('load', () => ok('[OK] Right image overlay rendered'));
-      leftOverlay.on('error',  () => err('[ERR] Left image overlay failed (bounds or file?)'));
-      rightOverlay.on('error', () => err('[ERR] Right image overlay failed (bounds or file?)'));
-
-      // 7) Fit the map and add overlays
-      map.fitBounds(bounds);
-      ok('[OK] fitBounds applied');
-      leftOverlay.addTo(map);
-      rightOverlay.addTo(map);
-
-      // 8) Add the compare (swipe) control
-      try {
-        // position: 0.5 starts the handle in the middle; set 0..1 if you want a different start
-        L.control.compare([leftOverlay], [rightOverlay], { position: 0.5 }).addTo(map);
-        ok('[OK] Compare control added — drag the vertical handle to swipe');
-      } catch (e) {
-        err('[ERR] Failed to add compare control', e);
-      }
-
-      info('[DONE] If anything is blank: check Network tab for 404s on leaflet.js, leaflet-compare.js, and both PNGs.');
-    });
+    // The handle is created by the control; give it a tick then wire guards
+    setTimeout(wireHandleGuards, 0);
   })();
   </script>
 </body>
