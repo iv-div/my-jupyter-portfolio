@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentinel-2 Swipe Map</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+  html, body, #map { height: 100%; margin: 0; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet-side-by-side@2.0.0/leaflet-side-by-side.min.js"></script>
+
+<script>
+// Create the map
+var map = L.map('map');
+
+// Base map
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap'
+}).addTo(map);
+
+// Geographic bounds (replace with your own)
+var bounds = [[40.45640682642721, 68.4373932792854], [40.646767386947346, 68.78707240399831]];
+
+// Add both images
+var leftImg = L.imageOverlay('Mirzaabad_May_2019.png', bounds).addTo(map);
+var rightImg = L.imageOverlay('Mirzaabad_May_2020.png', bounds).addTo(map);
+
+// Fit map and add swipe control
+map.fitBounds(bounds);
+L.control.sideBySide(leftImg, rightImg).addTo(map);
+</script>
+</body>
+</html>
