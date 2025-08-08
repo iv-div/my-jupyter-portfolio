@@ -2,6 +2,92 @@
 <html>
 <head>
   <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Leaflet Compare — ImageOverlay with panes</title>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Leaflet Compare (npm dist build) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-compare/dist/leaflet-compare.css"/>
+  <script src="https://unpkg.com/leaflet-compare/dist/leaflet-compare.js"></script>
+
+  <style>
+    html, body { height: 100%; margin: 0; }
+    #map { position: absolute; inset: 0; }
+
+    /* Make the handle easy to grab */
+    .leaflet-compare .compare-handle {
+      width: 12px;
+      background: rgba(255,255,255,0.9);
+      border: 1px solid #999;
+      box-shadow: 0 0 0 1px #666 inset, 0 0 6px rgba(0,0,0,0.25);
+      cursor: ew-resize;
+      z-index: 10000;
+      touch-action: none;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <script>
+  // 1) Map
+  const map = L.map('map');
+
+  // 2) Bounds (your EPSG:4326 extent)
+  const bounds = [[40.45640682642721, 68.4373932792854], [40.646767386947346, 68.78707240399831]];
+  map.fitBounds(bounds);
+
+  // 3) Create two panes so each side has its own overlay “stack”
+  map.createPane('left');
+  map.createPane('right');
+
+  // 4) Base layers — one for each side (can be the same source)
+  const leftBase = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap'
+  });
+  const rightBase = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap'
+  });
+
+  // 5) Your images, pinned to their panes
+  const LEFT_IMG  = 'Mirzaabad_May_2019.png';
+  const RIGHT_IMG = 'Mirzaabad_May_2020.png';
+
+  const leftOverlay  = L.imageOverlay(LEFT_IMG,  bounds, { pane: 'left' });
+  const rightOverlay = L.imageOverlay(RIGHT_IMG, bounds, { pane: 'right' });
+
+  // Add everything to the map (they’ll be clipped by the compare control)
+  leftBase.addTo(map);
+  rightBase.addTo(map);
+  leftOverlay.addTo(map);
+  rightOverlay.addTo(map);
+
+  // 6) Compare control — pass arrays per side, like the example
+  L.control.compare(
+    [leftBase, leftOverlay],
+    [rightBase, rightOverlay],
+    { position: 0.5 } // start in the middle
+  ).addTo(map);
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Before/After Swipe (ImageOverlay, Leaflet Compare)</title>
 
