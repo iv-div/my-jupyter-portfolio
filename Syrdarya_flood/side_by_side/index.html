@@ -3,144 +3,109 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sentinel-2 Swipe Map</title>
+  <title>Before/After Swipe (ImageOverlay, Leaflet Compare)</title>
+
+  <!-- Leaflet core -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          onload="console.log('[OK] Leaflet loaded')"
+          onerror="console.error('[ERR] Leaflet failed to load')"></script>
+
+  <!-- Leaflet Compare (works with ImageOverlay) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-compare/dist/leaflet-compare.css"/>
+  <script defer src="https://unpkg.com/leaflet-compare/dist/leaflet-compare.js"
+          onload="console.log('[OK] Leaflet-Compare loaded')"
+          onerror="console.error('[ERR] Leaflet-Compare failed to load')"></script>
+
   <style>
     html, body { height: 100%; margin: 0; }
     #map { position: absolute; inset: 0; }
-    /* Make the swipe handle easier to grab/see */
-    .leaflet-sbs-range { width: 60% !important; }
+    /* Optional: make the handle easier to grab */
+    .leaflet-compare .compare-handle { width: 6px; }
   </style>
 </head>
 <body>
   <div id="map"></div>
 
-  <!-- 1) Leaflet core (must load first) -->
-  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-          onload="console.log('[OK] Leaflet script loaded')"
-          onerror="console.error('[ERR] Leaflet failed to load')"></script>
-
-  <!-- 2) Side-by-side plugin (must load after Leaflet) -->
-  <script defer src="https://cdn.jsdelivr.net/gh/digidem/leaflet-side-by-side@2.2.0/leaflet-side-by-side.min.js"></script>
-          onload="console.log('[OK] Side-by-side plugin loaded')"
-          onerror="console.error('[ERR] Side-by-side plugin failed to load')"></script>
-
-  <!-- 3) Your map code -->
   <script defer>
-  (function() {
-    // --- Pretty logging helpers ---
+  (function () {
     const ok   = (m, ...a) => console.log('%c' + m, 'color:#0a0;font-weight:bold', ...a);
     const info = (m, ...a) => console.log('%c' + m, 'color:#06c', ...a);
     const warn = (m, ...a) => console.warn('%c' + m, 'color:#b80', ...a);
     const err  = (m, ...a) => console.error('%c' + m, 'color:#c00;font-weight:bold', ...a);
 
-    // Run after DOM + deferred scripts
-    window.addEventListener('DOMContentLoaded', () => {
-      info('[BOOT] DOMContentLoaded fired');
+    window.addEventListener('DOMContentLoaded', async () => {
+      info('[BOOT] DOMContentLoaded');
 
-      // 0) Sanity checks: libraries
+      // 1) Sanity: libraries
       if (typeof L === 'undefined') {
-        err('[FATAL] Leaflet global L is undefined. The Leaflet script likely 404’d or is blocked.');
+        err('[FATAL] Leaflet (L) is undefined — leaflet.js didn’t load.');
         return;
       }
-      ok('[OK] Leaflet detected. Version:', L.version);
+      ok('[OK] Leaflet detected', L.version);
 
-      if (!L.control || typeof L.control.sideBySide !== 'function') {
-        warn('[WARN] side-by-side control not detected yet. Will try to proceed anyway…');
-      } else {
-        ok('[OK] side-by-side control available');
-      }
-
-      // 1) Map div present?
-      const mapEl = document.getElementById('map');
-      if (!mapEl) {
-        err('[FATAL] #map element is missing from the DOM.');
+      if (typeof L.control?.compare !== 'function') {
+        err('[FATAL] leaflet-compare is not available — check the <script> URL/load order.');
         return;
       }
-      ok('[OK] #map element found. Size:', mapEl.clientWidth + 'x' + mapEl.clientHeight);
+      ok('[OK] leaflet-compare available');
 
-      // 2) Bounds (replace with YOUR converted EPSG:4326 bounds)
-      const bounds = [[40.45640682642721, 68.4373932792854], [40.646767386947346, 68.78707240399831]];
-      if (!Array.isArray(bounds) || bounds.length !== 2) {
-        err('[FATAL] Bounds are malformed. Expected [[south,west],[north,east]] got:', bounds);
-        return;
-      }
-      ok('[OK] Bounds set:', bounds);
-
-      // 3) Filenames (case-sensitive; must exist in same folder as index.html)
+      // 2) Your files (case-sensitive) — put them next to this HTML
       const LEFT_IMG  = 'Mirzaabad_May_2019.png';
       const RIGHT_IMG = 'Mirzaabad_May_2020.png';
       info('[INFO] Using images:', { LEFT_IMG, RIGHT_IMG });
 
-      // Optional preflight: check images reachable (same-origin only; GH Pages okay)
-      const preflightImage = (url) => new Promise(resolve => {
+      // 3) Your geographic bounds in EPSG:4326 as [[south,west],[north,east]]
+      const bounds = [[40.45640682642721, 68.4373932792854], [40.646767386947346, 68.78707240399831]];
+      ok('[OK] Bounds set', bounds);
+
+      // 4) Preflight image reachability (helps catch 404s early)
+      const check = (src) => new Promise(res => {
         const i = new Image();
-        i.onload = () => { ok(`[OK] Image reachable: ${url} (${i.naturalWidth}x${i.naturalHeight})`); resolve({url, ok:true}); };
-        i.onerror = () => { err(`[ERR] Image failed to load (404/CORS?): ${url}`); resolve({url, ok:false}); };
-        i.src = url + '?cachebust=' + Date.now();
+        i.onload = () => { ok(`[OK] Image reachable: ${src} (${i.naturalWidth}x${i.naturalHeight})`); res(true); };
+        i.onerror = () => { err(`[ERR] Image failed to load: ${src}`); res(false); };
+        i.src = src + '?cachebust=' + Date.now();
       });
+      const [okL, okR] = await Promise.all([check(LEFT_IMG), check(RIGHT_IMG)]);
+      if (!okL || !okR) {
+        err('[FATAL] Fix the missing image(s) and reload.');
+        return;
+      }
 
-      Promise.all([preflightImage(LEFT_IMG), preflightImage(RIGHT_IMG)]).then(results => {
-        const bad = results.filter(r => !r.ok);
-        if (bad.length) {
-          err('[FATAL] One or more image files are not loading. Fix filenames/paths and reload.', bad);
-          return;
-        }
+      // 5) Create map + basemap
+      const map = L.map('map');
+      ok('[OK] Map created');
 
-        // 4) Create map
-        let map;
-        try {
-          map = L.map('map');
-          ok('[OK] Map created');
-        } catch (e) {
-          err('[FATAL] Failed to create Leaflet map:', e);
-          return;
-        }
+      const base = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap'
+      }).addTo(map);
+      base.on('load', () => ok('[OK] Base tiles loaded'));
+      base.on('tileerror', (e) => warn('[WARN] Base tile error', e));
 
-        // 5) Basemap
-        const tile = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; OpenStreetMap'
-        });
+      // 6) Create the image overlays (ImageOverlay works with leaflet-compare)
+      const leftOverlay  = L.imageOverlay(LEFT_IMG, bounds);
+      const rightOverlay = L.imageOverlay(RIGHT_IMG, bounds);
+      leftOverlay.on('load',  () => ok('[OK] Left image overlay rendered'));
+      rightOverlay.on('load', () => ok('[OK] Right image overlay rendered'));
+      leftOverlay.on('error',  () => err('[ERR] Left image overlay failed (bounds or file?)'));
+      rightOverlay.on('error', () => err('[ERR] Right image overlay failed (bounds or file?)'));
 
-        tile.on('load', () => ok('[OK] Base tiles loaded'));
-        tile.on('tileerror', (e) => warn('[WARN] Tile load error', e));
-        tile.addTo(map);
+      // 7) Fit the map and add overlays
+      map.fitBounds(bounds);
+      ok('[OK] fitBounds applied');
+      leftOverlay.addTo(map);
+      rightOverlay.addTo(map);
 
-        // 6) Image overlays
-        const leftImg  = L.imageOverlay(LEFT_IMG, bounds);
-        const rightImg = L.imageOverlay(RIGHT_IMG, bounds);
+      // 8) Add the compare (swipe) control
+      try {
+        // position: 0.5 starts the handle in the middle; set 0..1 if you want a different start
+        L.control.compare([leftOverlay], [rightOverlay], { position: 0.5 }).addTo(map);
+        ok('[OK] Compare control added — drag the vertical handle to swipe');
+      } catch (e) {
+        err('[ERR] Failed to add compare control', e);
+      }
 
-        leftImg.on('load',  () => ok('[OK] Left image overlay rendered'));
-        leftImg.on('error', () => err('[ERR] Left image overlay failed to render (bounds mismatch or 404)'));
-        rightImg.on('load',  () => ok('[OK] Right image overlay rendered'));
-        rightImg.on('error', () => err('[ERR] Right image overlay failed to render (bounds mismatch or 404)'));
-
-        leftImg.addTo(map);
-        rightImg.addTo(map);
-
-        // 7) Fit to bounds
-        try {
-          map.fitBounds(bounds);
-          ok('[OK] fitBounds applied');
-        } catch (e) {
-          warn('[WARN] fitBounds threw an error (bounds invalid?)', e);
-        }
-
-        // 8) Add the side-by-side control
-        if (typeof L.control.sideBySide === 'function') {
-          try {
-            L.control.sideBySide(leftImg, rightImg).addTo(map);
-            ok('[OK] side-by-side control added. You should see a vertical slider.');
-          } catch (e) {
-            err('[ERR] Failed to add side-by-side control:', e);
-          }
-        } else {
-          err('[FATAL] side-by-side plugin is not available. Check the plugin <script> URL or load order.');
-        }
-
-        // 9) Final state check
-        info('[DONE] If the map is blank: open Network tab and confirm leaflet.js, leaflet-side-by-side.min.js, and both PNGs are 200 OK.');
-      });
+      info('[DONE] If anything is blank: check Network tab for 404s on leaflet.js, leaflet-compare.js, and both PNGs.');
     });
   })();
   </script>
