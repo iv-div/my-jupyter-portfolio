@@ -6,33 +6,38 @@
 <title>Sentinel-2 Swipe Map</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
-  html, body, #map { height: 100%; margin: 0; }
+  html, body { height: 100%; margin: 0; }
+  #map { position: absolute; inset: 0; } /* fills page reliably on GH Pages */
+  /* Make the slider nice & obvious */
+  .leaflet-sbs-range { width: 60% !important; }
 </style>
 </head>
 <body>
 <div id="map"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/leaflet-side-by-side@2.0.0/leaflet-side-by-side.min.js"></script>
+<!-- Use unpkg and a pinned version that’s known to work -->
+<script src="https://unpkg.com/leaflet-side-by-side@2.2.0/dist/leaflet-side-by-side.min.js"></script>
 
 <script>
-// Create the map
+// Sanity check: if this logs 'function', plugin is loaded
+console.log('sideBySide type:', typeof L.control.sideBySide);
+
 var map = L.map('map');
 
-// Base map
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; OpenStreetMap'
 }).addTo(map);
 
-// Geographic bounds (replace with your own)
+// replace with YOUR bounds
 var bounds = [[40.45640682642721, 68.4373932792854], [40.646767386947346, 68.78707240399831]];
 
-// Add both images
 var leftImg = L.imageOverlay('Mirzaabad_May_2019.png', bounds).addTo(map);
 var rightImg = L.imageOverlay('Mirzaabad_May_2020.png', bounds).addTo(map);
 
-// Fit map and add swipe control
 map.fitBounds(bounds);
+
+// Add the slider control
 L.control.sideBySide(leftImg, rightImg).addTo(map);
 </script>
 </body>
