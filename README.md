@@ -11,6 +11,13 @@ An animated geospatial visualization of UN peacekeeping missions and fatalities 
 
 ![Peacekeeping_missions](./peacekeeping-fatalities/images/peacekeeping_missions_compressed.gif)
 
+### 2. [Syrdarya Flood – Dam Collapse Impact Analysis](./Syrdarya_flood)
+
+A spatial and statistical analysis of the May 2020 Sardoba reservoir dam collapse in Uzbekistan and its cross-border flooding into Kazakhstan. Combines GWS and Copernicus data via Google Earth Engine, QGIS, and Python to map inundation extent and assess land-use impacts.
+
+AOI_flooded_area
+![Districts by flooded area](./Syrdarya_flood/images/AOI_flooded_area.png)
+
 ---
 
 More projects coming soon:
