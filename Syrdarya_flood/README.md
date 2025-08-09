@@ -7,7 +7,7 @@ Using **satellite imagery, GIS processing, and statistical analysis**, this proj
 
 The analysis combines **Google Earth Engine (GEE)** for remote sensing, **QGIS** for spatial processing and visualization, and **Python** for data analysis and plotting.
 
-![Mirzaabad flooding](/images/Mirzaabad_flood.gif)
+![Mirzaabad flooding](./images/Mirzaabad_flood.gif)
 
 *Flood in Mirzaabad District. Satellite image Sentinel2:*
 [Side-by-side slider](https://iv-div.github.io/my-jupyter-portfolio/Syrdarya_flood/side_by_side/)
@@ -91,7 +91,7 @@ Pekel, J.-F., Cottam, A., Gorelick, N., & Belward, A. S. (2016). *High-resolutio
    - Implement **Leaflet Side-by-Side slider** for interactive before/after image comparison  
 
 
-![Districts by flooding area](/images/AOI_flooded_area.png)
+![Districts by flooding area](./images/AOI_flooded_area.png)
 *Districts by flooding area*
 
 ---
