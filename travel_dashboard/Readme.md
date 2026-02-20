@@ -4,7 +4,7 @@ This repository contains a Power BI dashboard that visualizes sample travel data
 
 The dashboard integrates financial analysis with interactive geographic route visualization.
 
-![UN Travel Dashboard Preview](travel_dashboard/travel%20data%20dashboard%20example%201.jpg)
+![UN Travel Dashboard Preview](screenshot.jpg)
 
 ---
 
